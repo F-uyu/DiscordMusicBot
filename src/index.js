@@ -5,8 +5,10 @@ const {token} = require('./config.json');
 const {SpotifyPlugin} = require('@distube/spotify');
 const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const ytdl = require('ytdl-core');
 let SongOnGoing = false;
 let VCin = false;
+
 
 const client = new discord.Client({
     intents: [
@@ -98,8 +100,10 @@ client.on("messageCreate", (message) =>{
     }
     //testing
     if (action == 'queue'){
-        const check = client.DisTube.getQueue(message);
-        console.log(check);
+        const queue = client.DisTube.getQueue(message);
+        message.channel.send(queue.songs.map((song, id) =>
+        `${song.name} + ${id + 1}`
+    ).join("\n"))
     }
     if (action == 'join'){
         const voicec = message.member?.voice?.channel;
@@ -119,7 +123,13 @@ client.on("messageCreate", (message) =>{
         const test = client.DisTube.queues.get(message);
         console.log(test.songs[0]);
     }
-    
+    if (action == 'skip'){
+        client.DisTube.skip(message);
+    }
+    if (action == 'autoplay'){
+        const mode = client.DisTube.toggleAutoplay(message);
+        message.channel.send("Automode mode: " + (mode ? "On" : "Off"));
+    }
 
 })
 
@@ -146,14 +156,14 @@ client.DisTube
     .on("searchDone", (message, query) => {
         message.channel.send(`Song selected: ${query}`);
     })
-    .on("addSong", (queue, song) => {
-        queue.textChannel.send(queue);
-    })
     .on("disconnect", queue => {
         console.log("test");
         queue.textChannel.send("Bot has disconnected");
         VCin = false;
     })
+    .on("addSong", (queue, song) => queue.textChannel.send(
+        `Added ${song.name} - \`${song.formattedDuration}\` to the queue by ${song.user}.`
+    ));
     
 
 
