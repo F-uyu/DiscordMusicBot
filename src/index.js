@@ -6,6 +6,7 @@ const {SpotifyPlugin} = require('@distube/spotify');
 const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
 const ytdl = require('ytdl-core');
+const { EmbedBuilder } = require('discord.js');
 let SongOnGoing = false;
 let VCin = false;
 
@@ -135,29 +136,51 @@ client.on("messageCreate", (message) =>{
 
 client.DisTube
     .on("playSong", (queue, song) => {
-        queue.textChannel.send("NOW PLAYING " + song.name);
+        console.log(song);
+        const frame = new EmbedBuilder()
+            .setColor(0xDAF7A6)
+            .setTitle(`${song.name}`)
+            .setURL(`${song.url}`)
+            .setThumbnail(`${song.thumbnail}`)
+            .addFields(
+                { name: `**Duration**`, value: `${song.formattedDuration}`, inline: true },
+                //{ name: '\u200B', value: '\u200B' },
+                { name: `**Views**`, value: `${song.views}`, inline: true },
+                { name: `**Age-Restricted**`, value: `${song.age_restricted}`, inline: true },
+            )
+            .setTimestamp()
+            .setFooter({ text: `${song.name}`, iconURL: `${song.thumbnail}` });
+        queue.textChannel.send({ embeds: [frame] });
     })
     .on("searchResult", (message, results, query) => {
+        const frame = new EmbedBuilder()
+            .setColor(0xDAF7A6)
+            .setTitle("List of songs:")
+        results.map((song, i) =>
+            frame.addFields(
+                {name: "hello", value: `**${i+1}**. ${song.name} - \`${song.formattedDuration}\``}
+            )
+        )
         message.channel.send(`**Choose an option from below**\n${
                 results.map((song, i) => `**${i+1}**. ${song.name} - \`${song.formattedDuration}\``).join("\n")
             }
             \n*Enter anything else or wait 60 seconds to cancel*`
         );
+        message.channel.send({ embeds: [frame]})
     })
     .on("searchCancel", (message) => {
-        message.channel.send("Search cancelled");
+        message.channel.send("Search cancelled.");
     })
     .on("searchInvalidAnswer", (message, answer) => {
-        message.channel.send(`${answer} does not exist`);
+        message.channel.send(`${answer} does not exist.`);
     })
     .on("searchNoResult", (message, query) => {
-        message.channel.send(`Message not found for ${query}`);
+        message.channel.send(`Message not found for ${query}.`);
     })
     .on("searchDone", (message, query) => {
-        message.channel.send(`Song selected: ${query}`);
+        message.channel.send(`**Song selected: ${query}.**`);
     })
     .on("disconnect", queue => {
-        console.log("test");
         queue.textChannel.send("Bot has disconnected");
         VCin = false;
     })
