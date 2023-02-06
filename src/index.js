@@ -156,16 +156,16 @@ client.DisTube
         const frame = new EmbedBuilder()
             .setColor(0xDAF7A6)
             .setTitle("List of songs:")
+            .setTimestamp()
+            .setThumbnail(results[0].thumbnail)
         results.map((song, i) =>
             frame.addFields(
-                {name: "hello", value: `**${i+1}**. ${song.name} - \`${song.formattedDuration}\``}
+                {name: `\u200B`, value: `**${i+1}**. ${song.name} - \`${song.formattedDuration}\``}
             )
         )
-        message.channel.send(`**Choose an option from below**\n${
-                results.map((song, i) => `**${i+1}**. ${song.name} - \`${song.formattedDuration}\``).join("\n")
-            }
-            \n*Enter anything else or wait 60 seconds to cancel*`
-        );
+        frame.addFields(
+            {name: `\u200B`, value: `*Enter anything else or wait 60 seconds to cancel*`}
+        )
         message.channel.send({ embeds: [frame]})
     })
     .on("searchCancel", (message) => {
