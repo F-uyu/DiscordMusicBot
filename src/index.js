@@ -10,7 +10,7 @@ const { EmbedBuilder } = require('discord.js');
 const { NONAME } = require('dns');
 let SongOnGoing = false;
 let VCin = false;
-
+let numOfsongs = 0;
 
 const client = new discord.Client({
     intents: [
@@ -67,6 +67,7 @@ client.on("messageCreate", (message) =>{
                     textChannel: message.channel,
                     message
                 })
+                numOfsongs++;
             }
             else{
                 message.channel.send("Join a voice channel");
@@ -77,6 +78,7 @@ client.on("messageCreate", (message) =>{
     if (action === 'pause'){
         if (SongOnGoing){
             client.DisTube.pause(message);
+            SongOnGoing = false;
         }
         else{
             message.channel.send("Song is already paused");
@@ -85,14 +87,21 @@ client.on("messageCreate", (message) =>{
     }
     if (action == 'resume'){
         if (SongOnGoing){
-            message.channel.send("Song is already playing");
+            message.channel.send("Song is already playing.");
         }
         else{
             client.DisTube.resume(message);
+            SongOnGoing = true;
         }
     }
     if (action == 'previous'){
-        client.DisTube.previous(message);
+        if (numOfsongs > 1){
+            client.DisTube.previous(message);
+        }
+        else{
+            message.channel.send("No previous song.")
+        }
+        
     }
     //testinggg
     if (action == 'search'){
@@ -143,18 +152,37 @@ client.on("messageCreate", (message) =>{
         const check = client.DisTube.voices.get(message);
         console.log(check);
     }
-    if (action == 'get'){
-        const test = client.DisTube.queues.get(message);
-        console.log(test.songs[0]);
-    }
     if (action == 'skip'){
-        client.DisTube.skip(message);
+        const len = client.DisTube.getQueue(message);
+        if (len.songs.length <= 1){
+            message.channel.send("No song to skip to")
+        }
+        else{
+            client.DisTube.skip(message);
+        }
+        
     }
     if (action == 'autoplay'){
         const mode = client.DisTube.toggleAutoplay(message);
         message.channel.send("Automode mode: " + (mode ? "On" : "Off"));
     }
-
+    if (action == 'help'){
+        const frame = new EmbedBuilder()
+            .setColor(0xDAF7A6)
+            .setTitle("List of commands")
+            .setAuthor({name: "Created by Fyxru#5702; Debugger by ahneh#3410"})
+            .setFields(
+                {name: "play", value: "Play/queue a song."},
+                {name: "pause", value: "Pause a song."},
+                {name: "resume", value: "Resume a song."},
+                {name: "previous", value: "Play the previous song."},
+                {name: "queue", value: "Check the queue of the song."},
+                {name: "join", value: "Makes the bot join VC."},
+                {name: "skip", value: "Skip current song."},
+                {name: "autoplay", value: "Autoplay songs."}
+            )
+        message.channel.send({embeds: [frame]})
+    }
 })
 
 client.DisTube
