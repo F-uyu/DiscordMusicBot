@@ -7,6 +7,7 @@ const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
 const ytdl = require('ytdl-core');
 const { EmbedBuilder } = require('discord.js');
+const { NONAME } = require('dns');
 let SongOnGoing = false;
 let VCin = false;
 
@@ -99,12 +100,34 @@ client.on("messageCreate", (message) =>{
             limit: 15,
         })
     }
-    //testing
     if (action == 'queue'){
         const queue = client.DisTube.getQueue(message);
-        message.channel.send(queue.songs.map((song, id) =>
-        `${song.name} + ${id + 1}`
-    ).join("\n"))
+        if (!queue){
+            message.channel.send(`**No song is currently playing.**`)
+        }
+        else{
+            console.log(queue.songs.length)
+            if (queue.songs.length == 1){
+                const frame = new EmbedBuilder()
+                    .setColor(0xDAF7A6)
+                    .setTitle(`Current song:`)
+                queue.songs.map((song, id) =>
+                    frame.addFields({name: `Current => ${song.name}`, value: `Duration: ${song.formattedDuration}`})
+                )
+                message.channel.send({embeds: [frame]})
+            }
+            else{
+                const frame = new EmbedBuilder()
+                    .setColor(0xDAF7A6)
+                    .setTitle(`Upcoming: ${queue.songs[1].name}`)
+                    .setURL(`${queue.songs[1].url}`)
+                    .setThumbnail(`${queue.songs[1].thumbnail}`)
+                queue.songs.map((song, id) =>
+                    frame.addFields({name: `${id + 1}. ${song.name}`, value: `Duration: ${song.formattedDuration}`})
+                )
+                message.channel.send({embeds: [frame]})
+            }
+        }
     }
     if (action == 'join'){
         const voicec = message.member?.voice?.channel;
@@ -136,7 +159,6 @@ client.on("messageCreate", (message) =>{
 
 client.DisTube
     .on("playSong", (queue, song) => {
-        console.log(song);
         const frame = new EmbedBuilder()
             .setColor(0xDAF7A6)
             .setTitle(`${song.name}`)
