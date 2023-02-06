@@ -166,6 +166,9 @@ client.on("messageCreate", (message) =>{
         const mode = client.DisTube.toggleAutoplay(message);
         message.channel.send("Automode mode: " + (mode ? "On" : "Off"));
     }
+    if (action == 'shuffle'){
+        client.DisTube.shuffle(message)
+    }
     if (action == 'help'){
         const frame = new EmbedBuilder()
             .setColor(0xDAF7A6)
